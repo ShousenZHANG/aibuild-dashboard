@@ -135,7 +135,10 @@ export async function POST(req: Request) {
         // Step 2: Resolve all product IDs
         const uniqueCodes = Array.from(new Set(products.map((p) => p.code)))
         const existingProducts = await prisma.product.findMany({
-            where: { productCode: { in: uniqueCodes } },
+            where: {
+                uploadedBy: payload.id,
+                productCode: { in: uniqueCodes },
+            },
             select: { id: true, productCode: true },
         })
 
@@ -145,7 +148,11 @@ export async function POST(req: Request) {
         for (const p of products) {
             if (!codeToId.has(p.code)) {
                 const newP = await prisma.product.create({
-                    data: { productCode: p.code, name: p.name, uploadedBy: payload.id },
+                    data: {
+                        productCode: p.code,
+                        name: p.name,
+                        uploadedBy: payload.id,
+                    },
                     select: { id: true, productCode: true },
                 })
                 codeToId.set(newP.productCode, newP.id)
